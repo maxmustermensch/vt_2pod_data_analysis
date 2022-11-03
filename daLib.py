@@ -7,6 +7,10 @@ import os
 import re
 import glob
 import math
+import PsiMarginal_fd
+import datime
+import time
+import shutil
 import numpy             as np
 import matplotlib.pyplot as plt
 from pandas              import DataFrame
@@ -296,3 +300,63 @@ class da:
         plt.legend()
 
         plt.show()
+
+    def fitweibull(self, bs, hv, TEMP): #EIGENE KLASSE?
+
+        stim = np.array([])
+        resp = np.array([])
+
+        for TSID in self.TSIDs:
+            stim = np.append(stim, globals()[TSID+'_'+bs+'_'+hv+'_stim'])
+            resp = np.append(resp, globals()[TSID+'_'+bs+'_'+hv+'_response'])
+
+        if TEMP == False:
+            timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H-%M')
+            file_name_data = FID +"_"+ bs + "_" + hv +"_data_"+ timestamp +".npy"
+
+            file_name_stim = FID +"_"+ bs + "_" + hv +"_stim_"+ timestamp +".npy"
+            file_name_response = FID +"_"+ bs + "_" + hv +"_response_"+ timestamp +".npy"
+            file_name_postmean = FID +"_"+ bs + "_" + hv +"_postmean_"+ timestamp +".npy"
+            file_name_poststd = FID +"_"+ bs + "_" + hv +"_poststd_"+ timestamp +".npy"
+            file_name_stimRange = FID +"_"+ bs + "_" + hv +"_stimRange_"+ timestamp +".npy"
+
+            file_name_pThreshold = FID +"_"+ bs + "_" + hv +"_pThreshold_"+ timestamp +".npy"
+            file_name_pSlope = FID +"_"+ bs + "_" + hv +"_pSlope_"+ timestamp +".npy"
+            file_name_pLapse = FID +"_"+ bs + "_" + hv +"_pLapse_"+ timestamp +".npy"
+            file_name_pGuess = FID +"_"+ bs + "_" + hv +"_pGuess_"+ timestamp +".npy"
+            file_name_eThreshold = FID +"_"+ bs + "_" + hv +"_eThreshold_"+ timestamp +".npy"
+            file_name_eSlope = FID +"_"+ bs + "_" + hv +"_eSlope_"+ timestamp +".npy"
+            file_name_eLapse = FID +"_"+ bs + "_" + hv +"_eLapse_"+ timestamp +".npy"
+            file_name_eGuess = FID +"_"+ bs + "_" + hv +"_eGuess_"+ timestamp +".npy"
+            file_name_stdThreshold = FID +"_"+ bs + "_" + hv +"_stdThreshold_"+ timestamp +".npy"
+            file_name_stdSlope = FID +"_"+ bs + "_" + hv +"_stdSlope_"+ timestamp +".npy"
+            file_name_stdLapse = FID +"_"+ bs + "_" + hv +"_stdLapse_"+ timestamp +".npy"
+            file_name_stdGuess = FID +"_"+ bs + "_" + hv +"_stdGuess_"+ timestamp +".npy"
+
+            file_path_TEMP = os.path.join(glob.glob('C:\\Users\\mvomstein\\projects\\vt_2pod_data_analysis')[0],
+                                                    'DATA_merged', FID)
+            FID = input('add file ID:')
+            #check for directory with TSID
+            if not os.path.isdir(file_path_TEMP):
+                os.mkdir(file_path_TEMP)
+                print("new directory " + FID + " created")
+
+            np.save(os.path.join(file_path_TEMP, file_name_stim), psi.stim)
+            np.save(os.path.join(file_path_TEMP, file_name_response), psi.response)
+            np.save(os.path.join(file_path_TEMP, file_name_postmean), psi.postmean)
+            np.save(os.path.join(file_path_TEMP, file_name_poststd), psi.poststd)
+            np.save(os.path.join(file_path_TEMP, file_name_stimRange), psi.stimRange)
+                
+            np.save(os.path.join(file_path_TEMP, file_name_pThreshold), psi.pThreshold)
+            np.save(os.path.join(file_path_TEMP, file_name_pSlope), psi.pSlope)
+            np.save(os.path.join(file_path_TEMP, file_name_pLapse), psi.pLapse)
+            np.save(os.path.join(file_path_TEMP, file_name_pGuess), psi.pGuess)
+            np.save(os.path.join(file_path_TEMP, file_name_eThreshold), psi.eThreshold)
+            np.save(os.path.join(file_path_TEMP, file_name_eSlope), psi.eSlope)
+            np.save(os.path.join(file_path_TEMP, file_name_eLapse), psi.eLapse)
+            np.save(os.path.join(file_path_TEMP, file_name_eGuess), psi.eGuess)
+            np.save(os.path.join(file_path_TEMP, file_name_stdThreshold), psi.stdThreshold)
+            np.save(os.path.join(file_path_TEMP, file_name_stdSlope), psi.stdSlope)
+            np.save(os.path.join(file_path_TEMP, file_name_stdLapse), psi.stdLapse)
+            np.save(os.path.join(file_path_TEMP, file_name_stdGuess), psi.stdGuess)
+
