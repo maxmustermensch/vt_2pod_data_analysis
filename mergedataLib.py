@@ -10,7 +10,7 @@ import numpy             as np
 
 
 
-def mergedata(TSIDs, file_path_data, bs, hv, TEMP=True):
+def mergedata(TSIDs, file_path_data, bs, hv, FID=None):
 
     #Allocate Data in Variables:
 
@@ -27,24 +27,27 @@ def mergedata(TSIDs, file_path_data, bs, hv, TEMP=True):
     
     #Load in data:
 
-    if TEMP == False:
-        FID = input('add file ID:')
-    else:
-        FID = "TEMP"
-
     stim = np.array([])
     resp = np.array([])
 
-    for TSID in TSIDs:
-        stim = np.append(stim, globals()[TSID+'_'+bs+'_'+hv+'_stim'])
-        resp = np.append(resp, globals()[TSID+'_'+bs+'_'+hv+'_response'])
+    if hv == 'h' or hv == 'v':
+        for TSID in TSIDs:
+            stim = np.append(stim, globals()[TSID+'_'+bs+'_'+hv+'_stim'])
+            resp = np.append(resp, globals()[TSID+'_'+bs+'_'+hv+'_response'])
+    if hv == 'hv':
+        for TSID in TSIDs:
+            stim = np.append(stim, globals()[TSID+'_'+bs+'_h_stim'])
+            stim = np.append(stim, globals()[TSID+'_'+bs+'_v_stim'])
+            resp = np.append(resp, globals()[TSID+'_'+bs+'_h_response'])
+            resp = np.append(resp, globals()[TSID+'_'+bs+'_v_response'])
 
     #Set Psi Parameters:
 
     ntrials = len(stim)  # number of trials
     a = np.linspace(0.01, 60, 31)  # threshold/bias grid
     b = np.linspace(0.01, 10, 50)  # slope grid
-    x = globals()[TSID+'_'+bs+'_'+hv+'_stimRange']  # possible stimuli to use
+    if hv == 'hv': x = globals()[TSID+'_'+bs+'_'+'h'+'_stimRange']
+    else: x = globals()[TSID+'_'+bs+'_'+hv+'_stimRange']  # possible stimuli to use
     delta = 0.02  # lapse
     gamma = np.linspace(0.01, 0.99, 100) # guess
 
@@ -66,6 +69,35 @@ def mergedata(TSIDs, file_path_data, bs, hv, TEMP=True):
             pass
 
     psi.plot()
+
+    if not FID:
+        FID = 'TEMP'
+
+    file_path_TEMP = os.path.join('DATA_m', FID)
+
+    if os.path.isdir(file_path_TEMP):
+        shutil.rmtree(file_path_TEMP)
+
+
+    os.mkdir(file_path_TEMP)
+    print("\nnew directory " + FID + " created")
+
+#    num = 0
+#    i = 0
+#    n = 0
+
+#    for file in os.listdir(file_path_TEMP):
+#        if FID in os.path.splitext(file)[0]:
+#            n = 1
+#            x = re.split("_", file)
+#            if re.search('^[0-9]+$', x[0][-1]):
+#                if num <= int(x[0][-1]): num = int(x[0][-1])+1
+#                i = 1
+
+#    if n and not i:
+#        num = 2
+
+#    if num: FID = FID+str(num)
 
 
     #Safe 
@@ -91,13 +123,6 @@ def mergedata(TSIDs, file_path_data, bs, hv, TEMP=True):
     file_name_stdLapse = FID +"_"+ bs + "_" + hv +"_stdLapse_"+ timestamp +".npy"
     file_name_stdGuess = FID +"_"+ bs + "_" + hv +"_stdGuess_"+ timestamp +".npy"
 
-    file_path_TEMP = os.path.join('DATA_m', FID)
-
-    #check for directory with FID
-    if not os.path.isdir(file_path_TEMP):
-        os.mkdir(file_path_TEMP)
-        print("\nnew directory " + FID + " created")
-
     np.save(os.path.join(file_path_TEMP, file_name_stim), psi.stim)
     np.save(os.path.join(file_path_TEMP, file_name_response), psi.response)
     np.save(os.path.join(file_path_TEMP, file_name_postmean), psi.postmean)
@@ -118,6 +143,3 @@ def mergedata(TSIDs, file_path_data, bs, hv, TEMP=True):
     np.save(os.path.join(file_path_TEMP, file_name_stdGuess), psi.stdGuess)
 
     return ([FID], 'DATA_m')
-
-def cleanup(file_path_TEMP, FID):
-    shutil.rmtree(os.path.join(file_path_TEMP, FID[0]))
