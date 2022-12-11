@@ -13,8 +13,9 @@ import numpy             as np
 def mergedata(TSIDs, file_path_data, bs, hv, FID=None):
 
     #Allocate Data in Variables:
+    TSIDs_all = TSIDs
 
-    for TSID in TSIDs:
+    for TSID in TSIDs_all:
         fpTS = os.path.join(file_path_data, TSID)
 
         for file in os.listdir(fpTS):
@@ -22,9 +23,13 @@ def mergedata(TSIDs, file_path_data, bs, hv, FID=None):
                 x = re.split("_", file)
                 if "user" in x:
                     del x[x.index("user")]
-                globals()[x[0] + "_" + x[1] + "_" + x[2] + "_" + x[3]] = np.load(os.path.join(fpTS, file), allow_pickle=True)
+                globals()[x[0] + "_" + x[1] + "_" + x[2] + "_" + x[3]] = np.load(os.path.join(fpTS, file), encoding='latin1',  allow_pickle=True)
 
-    
+    #Filter out existing TSID files with given bs and hv
+    TSIDs = [re.split("_", match)[0] for match in globals() if bs+'_'+hv in match]
+    TSIDs = [*set(TSIDs)]
+    print(TSIDs)
+
     #Load in data:
 
     stim = np.array([])
@@ -32,8 +37,10 @@ def mergedata(TSIDs, file_path_data, bs, hv, FID=None):
 
     if hv == 'h' or hv == 'v':
         for TSID in TSIDs:
-            stim = np.append(stim, globals()[TSID+'_'+bs+'_'+hv+'_stim'])
-            resp = np.append(resp, globals()[TSID+'_'+bs+'_'+hv+'_response'])
+            try:
+                stim = np.append(stim, globals()[TSID+'_'+bs+'_'+hv+'_stim'])
+                resp = np.append(resp, globals()[TSID+'_'+bs+'_'+hv+'_response'])
+            except: pass
     if hv == 'hv':
         for TSID in TSIDs:
             stim = np.append(stim, globals()[TSID+'_'+bs+'_h_stim'])

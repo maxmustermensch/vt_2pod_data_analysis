@@ -25,11 +25,22 @@ delta = 0.02                           #not used
 
 class da:
     def __init__(self, TSIDs, file_path):
-        self.TSIDs = TSIDs
+
+        #Delete existing global variables:
+        objects = dir()
+
+        for obj in objects:
+          if not obj.startswith("__") and not obj=='self' and not obj=='TSIDs' and not obj=='file_path':
+            del globals()[obj]
+
+        print(dir())
+        print(TSIDs)
+
+        self.TSIDs_all = TSIDs
         self.file_path = file_path
 
 
-        for TSID in self.TSIDs:
+        for TSID in self.TSIDs_all:
             self.fpTS = os.path.join(self.file_path, TSID)
 
             for self.file in os.listdir(self.fpTS):
@@ -37,12 +48,16 @@ class da:
                     self.x = re.split("_", self.file)
                     if "user" in self.x:
                         del self.x[self.x.index("user")]
-                    globals()[self.x[0] + "_" + self.x[1] + "_" + self.x[2] + "_" + self.x[3]] = np.load(os.path.join(self.fpTS, self.file), allow_pickle=True)
+                    globals()[self.x[0] + "_" + self.x[1] + "_" + self.x[2] + "_" + self.x[3]] = np.load(os.path.join(self.fpTS, self.file),encoding='latin1', allow_pickle=True) #-> leaving class with globals
 
     #Function: True Values Proportion Correct over StimRange:
 
     def propcortrue(self, bs, hv):
-        StimRespALL = np.zeros(shape=[len(self.TSIDs), len(globals()[self.TSIDs[0]+'_'+bs+'_'+hv+'_stim']), 2])
+
+        TSIDs = [re.split("_", match)[0] for match in globals() if bs+'_'+hv in match]
+        TSIDs = [*set(TSIDs)]
+
+        StimRespALL = np.zeros(shape=[len(TSIDs), len(globals()[TSIDs[0]+'_'+bs+'_'+hv+'_stim']), 2])
 
         t = 0
         for TSID in self.TSIDs:
@@ -104,8 +119,12 @@ class da:
     #Function: Get mean of Param:
 
     def getmean(self, bs, hv, param):
+
+        TSIDs = [re.split("_", match)[0] for match in globals() if bs+'_'+hv in match]
+        TSIDs = [*set(TSIDs)]
+
         matches = []
-        for TSID in self.TSIDs:
+        for TSID in TSIDs:
             matches = np.append(matches, [match for match in globals() if TSID+'_'+bs+'_'+hv+'_'+param in match])
 
         if globals()[matches[0]].shape == (): length = 1 #Einzelne Werte sind in den .npy files nicht als array gespeichert
@@ -160,11 +179,14 @@ class da:
 
     def propcorosep(self, bs, hv, hline=None, spline=False, tozero=False):
         
+        TSIDs = [re.split("_", match)[0] for match in globals() if bs+'_'+hv in match]
+        TSIDs = [*set(TSIDs)]
+
         plt.rc('font', size=14)
         fig = plt.figure(figsize=(6, 4))
         ax = fig.add_subplot(111)
         
-        x_values = globals()[self.TSIDs[0]+"_"+bs+"_"+hv+"_stimRange"]
+        x_values = globals()[TSIDs[0]+"_"+bs+"_"+hv+"_stimRange"]
         y_values = self.getmean(bs, hv, 'postmean')  
         y_std_lo = self.getmean(bs, hv, 'postmean')  - self.getmean(bs, hv, 'poststd')
         y_std_up = self.getmean(bs, hv, 'postmean')  + self.getmean(bs, hv, 'poststd')
@@ -217,6 +239,9 @@ class da:
 #Function: Compare Thresholds of two different Bodysites/Alignments:
 
     def thrshcompare(self, bs1, hv1, bs2, hv2, dop, values):
+
+        TSIDs = [re.split("_", match)[0] for match in globals() if bs+'_'+hv in match]
+        TSIDs = [*set(TSIDs)]
         
         plt.rc('font', size=14)
         fig = plt.figure(figsize=(6, 4))
@@ -236,8 +261,8 @@ class da:
         y_values_2 = np.empty(len(values))
         std2 = np.empty(len(values)) 
         
-        stimRange1 = globals()[self.TSIDs[0]+"_"+bs1+"_"+hv1+"_stimRange"]
-        stimRange2 = globals()[self.TSIDs[0]+"_"+bs2+"_"+hv2+"_stimRange"]
+        stimRange1 = globals()[TSIDs[0]+"_"+bs1+"_"+hv1+"_stimRange"]
+        stimRange2 = globals()[TSIDs[0]+"_"+bs2+"_"+hv2+"_stimRange"]
 
 
         if dop == "d":      
